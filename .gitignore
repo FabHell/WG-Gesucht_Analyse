@@ -47,3 +47,9 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Eigene Ergänzungen
+abbildungen/
+daten/
+.positai
+*.Rproj
