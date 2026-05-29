@@ -1,0 +1,174 @@
+---
+title: Dashboard WG-Gesucht
+format: dashboard
+theme: sandstone
+params:
+  stadt: "Bremen"
+---
+
+```{css}
+#| context: setup
+
+.girafe, .girafe_container_std{
+  margin-left: 0px;
+  margin-right: 0px;
+  height: 100%
+}
+
+```
+
+```{r}
+#| context: setup
+
+library(tidyverse)
+library(magick)
+library(ggtext)
+library(glue)
+library(showtext)
+library(sf)
+library(patchwork)
+library(ggiraph)
+library(DBI)
+library(reactable)
+library(bslib)
+library(bsicons)
+library(shiny)
+
+```
+
+```{r}
+#| context: setup
+
+font_add_google("Libre Franklin", "franklin")
+font_add_google("Domine", "domine")
+showtext_opts(dpi = 300)
+showtext_auto()
+
+con_lokal <- dbConnect(odbc::odbc(),
+                       Driver = "ODBC Driver 17 for SQL Server",
+                       Server = Sys.getenv("SERVER_SQL_LOKAL"),
+                       Database = Sys.getenv("DATABASE_SQL_LOKAL"),
+                       Trusted_Connection = "Yes",
+                       Encrypt = "No")
+
+sql <- glue_sql("
+  SELECT datum_scraping, stadtteil_geocoding, gesamtmiete, geolocation
+  FROM analysedaten
+  WHERE stadt = {params$stadt}
+ ", .con = con_lokal)
+
+Daten_Stadt <- dbGetQuery(con_lokal, sql)
+
+```
+
+# Überblick
+
+## Zeile Einführung
+
+::: {.card width="40%"}
+<h1 style="font-weight:700;margin-top:0;">
+
+Hallo Abenteurer
+
+</h1>
+
+Bereit für eine Expedition durch den Wohnungsmarkt für Wohngemeinschaften? Dieses Dashboard ist deine Schatzkarte durch den Datendschungel von WG-Gesucht. Wir lichten das Unterholz der Zahlen und legen die verborgenen Strukturen von **`r params$stadt`** frei. Pack deine Entdeckerausrüstung – es gibt viel zu entdecken!
+:::
+
+::: {.card style="margin: 0px; padding: 0px;; overflow: hidden;"}
+```{r}
+#| fig.width: 12
+#| fig.height: 9
+#| out.width: "95%"
+#| out.height: "95%"
+#| fig.align: "center"
+source("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Skripte\\Dashboard\\1_Überblick_Karte.R")
+interactive_plot
+```
+:::
+
+## Zeile Werteboxen {height="25%"}
+
+```{r}
+sql_median_stadt <- glue_sql("
+  SELECT DISTINCT
+    stadt, 
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY gesamtmiete) OVER (PARTITION BY stadt) as median_gesamtmiete
+  FROM analysedaten
+  WHERE gesamtmiete IS NOT NULL
+", .con = con_lokal)
+
+Daten_Median_Stadt <- dbGetQuery(con_lokal, sql_median_stadt)
+
+Rang_Preis <- Daten_Median_Stadt %>%
+  arrange(median_gesamtmiete) %>%
+  mutate(rang = row_number()) %>%
+  filter(stadt == params$stadt) %>%
+  pull(rang)
+```
+
+```{r}
+value_box(
+  title = "Rang günstige Miete",
+  value = glue("{Rang_Preis}/{nrow(Daten_Median_Stadt)}"),
+  showcase = bs_icon("cash-coin"),
+  theme = "primary")
+```
+
+```{r}
+value_box(
+  title = "Anzahl gescrapter Anzeigen",
+  value = nrow(Daten_Stadt),
+  showcase = bs_icon("stack"),
+  theme = "primary")
+```
+
+```{r}
+value_box(
+  title = "Jüngster Datenpunkt",
+  value = format(max(as.Date(Daten_Stadt$datum_scraping)), "%d.%m.%y"),
+  showcase = bs_icon("calendar3-event"),
+  theme = "primary")
+```
+
+```{r}
+value_box(
+  title = "Erhebungsdauer",
+  value = glue("{max(as.numeric(Daten_Stadt$datum_scraping)) - min(as.numeric(Daten_Stadt$datum_scraping))} Tage"),
+  showcase = bs_icon("calendar3"),
+  theme = "primary")
+```
+
+
+# Stadtteile
+
+## Stadtteile Geo
+::: {.card style="margin: 0px; padding: 0px;; overflow: hidden;"}
+```{r}
+source("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Skripte\\Dashboard\\2_Stadtteile_Karte_neu.R")
+Mein_Plot_int
+```
+:::
+
+::: {.card width="30%"}
+Hier ein Beispieltext als Platzhalter
+:::
+
+## Stadtteile Tabelle
+::: {.card style="padding: 10px; overflow: hidden;"}
+```{r}
+source("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Skripte\\Dashboard\\2_Stadtteile_Tabelle.R")
+tabelle
+```
+:::
+
+# Erhebungszeitraum
+
+::: {.card title="Erhebungszeitraum"}
+```{r}
+#| fig-width: 16
+#| fig-height: 6
+source("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Skripte\\Dashboard\\Plot_1.R")
+interactive_plot_scraping
+```
+:::

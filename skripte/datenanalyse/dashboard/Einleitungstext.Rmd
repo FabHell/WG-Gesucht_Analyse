@@ -1,0 +1,3 @@
+# Hello Adventurer
+
+Dieses Dashboard fasst die Analyseergebnisse der von WG-Gesucht gescrapten Wohnungsdaten übersichtlich an einem Ort zusammen. Im Fokus stehen einzelne Städte und ihre Angebotsstrukturen. **`r name_stadt`** Viel Spaß beim Entdecken!
