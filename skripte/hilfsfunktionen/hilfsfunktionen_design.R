@@ -64,7 +64,24 @@ axis_line_color = "gray25"
 panel_grid_color <- "gray15"
 
 
-theme_dunkel <- function() {
+
+theme_dunkel <- function(gridline_x = TRUE, gridline_y = TRUE) {
+  
+  gridline <- element_line(
+    color = panel_grid_color
+  )
+  
+  gridline_x <- if (isTRUE(gridline_x)) {
+    gridline
+  } else {
+    element_blank()
+  }
+  
+  gridline_y <- if (isTRUE(gridline_y)) {
+    gridline
+  } else {
+    element_blank()
+  }
   
   theme(
     
@@ -83,9 +100,11 @@ theme_dunkel <- function() {
       ),
     
     # Einstellungen Texte ======================================================
-    plot.title = element_text(
+    plot.title.position = "panel",
+    plot.title = element_markdown(
       color = plot_title_color,
-      family = plot_title_family
+      family = plot_title_family,
+      hjust = 0.5
       ),
     axis.title = element_text(
       color = axis_title_color,
@@ -104,9 +123,8 @@ theme_dunkel <- function() {
     axis.line = element_line(
       color = axis_line_color
       ),
-    panel.grid.major = element_line(
-      color = panel_grid_color
-      ),
+    panel.grid.major.x = gridline_x,
+    panel.grid.major.y = gridline_y,
     axis.ticks = element_blank(),
     panel.grid.minor = element_blank()
   )

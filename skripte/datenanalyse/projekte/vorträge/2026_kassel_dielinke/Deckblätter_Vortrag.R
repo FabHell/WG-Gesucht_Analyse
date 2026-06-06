@@ -75,7 +75,7 @@ Plot_methodik <- ggplot() +
   geom_text(aes(x = 0.05, y = 0.625, label = "Webscraping: computergestütztes\nAuslesen von Webseiteninhalten"), 
             size = 9, family = axis_title_family, color = axis_title_color,
             hjust = 0, lineheight= 0.95) +
-  geom_text(aes(x = 0.05, y = 0.475, label = "Aufbereiten und Speichern der Daten\nin eine Datenbank (ETL-Prozess)"), 
+  geom_text(aes(x = 0.05, y = 0.475, label = "Aufbereiten und Speichern der Daten\nin einer Datenbank (ETL-Prozess)"), 
             size = 9, family = axis_title_family, color = axis_title_color,
             hjust = 0,  lineheight= 0.95) +
   geom_curve(aes(x    = 0.035,   y =    0.625,

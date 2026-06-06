@@ -20,7 +20,7 @@ library(glue)
 ## Wahlbezogene Daten laden ----------------------------------------------------
 
 
-wahlergebnisse <- read.csv("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Kontextdaten_Städte\\Hamburg\\ergebnis-download.csv", sep = ";") 
+wahlergebnisse <- read.csv("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\daten\\sekundaerdaten\\Hamburg\\ergebnisse_bundestagswahl.csv", sep = ";") 
 
 wahlergebnisse_aufb <- wahlergebnisse %>%
   filter(Erfassungsgebietsart == "STIMMBEZIRK") %>%
@@ -49,7 +49,7 @@ wahlergebnisse_aufb <- wahlergebnisse %>%
   mutate(Erfassungsgebietsnummer = as.character(Erfassungsgebietsnummer)) 
 
 
-wahlbezirke_geo <- read_sf("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Geodaten\\Hamburg\\Geo_Wahlbezirke\\de_hh_up_wahlbezirke_EPSG_4326.json") %>%
+wahlbezirke_geo <- read_sf("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\daten\\geodaten\\Hamburg\\Geo_Wahlbezirke\\de_hh_up_wahlbezirke_EPSG_4326.json") %>%
   st_transform(crs = 25832) %>%
   select(Erfassungsgebietsnummer = wahlbezirksnummer) %>%
   left_join(wahlergebnisse_aufb, by = "Erfassungsgebietsnummer") %>%
@@ -100,6 +100,16 @@ table(analysedaten_wahlen$Meiste_Zweitstimmen)
 
 cor(analysedaten_wahlen$gesamtmiete, analysedaten_wahlen$Perc_Grüne)
 cor(analysedaten_wahlen$gesamtmiete, analysedaten_wahlen$Perc_AFD)
+
+
+### ERKENNTNISSE
+##
+## WGs in Wahlbezirken, in denen die Grünen stärker sind sind treuer
+## Gleichzeitig negativer Zusammenhang mit Stärke der AFD
+##
+## Hypothese, dass hohe Mitsteigerungen mit einer Stärkung der AFD einhergehen
+## lässt sich (auf den ersten Blick) nicht für den studentischen Wohnungsmarkt 
+## bestätigen
 
 
 analysedaten_wahlen %>%
