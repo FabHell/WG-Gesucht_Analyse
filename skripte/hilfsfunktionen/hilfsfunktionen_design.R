@@ -52,15 +52,15 @@ plot_title_family <- "playfair"
 plot_title_color <- "gray70"
 
 axis_text_family <- "domine"
-axis_text_color <- "gray35"
+axis_text_color <- "gray40"
 
 axis_title_family <- "domine"
-axis_title_color <- "gray45"
+axis_title_color <- "gray50"
 
 legend_text_family <- "domine"
 legend_text_color <- "gray40"
 
-axis_line_color = "gray25"
+axis_line_color = "gray30"
 panel_grid_color <- "gray15"
 
 
@@ -100,20 +100,28 @@ theme_dunkel <- function(gridline_x = TRUE, gridline_y = TRUE) {
       ),
     
     # Einstellungen Texte ======================================================
-    plot.title.position = "panel",
+    plot.title.position = "plot",
     plot.title = element_markdown(
       color = plot_title_color,
       family = plot_title_family,
-      hjust = 0.5
+      hjust = 0.5,
+      lineheight = 1.25
       ),
     axis.title = element_text(
       color = axis_title_color,
       family = axis_title_family
       ),
-    axis.text = element_text(
+    axis.text.x = element_text(
       color = axis_text_color,
-      family = axis_text_family
+      family = axis_text_family,
+      margin = margin(t=7.5, r=0, b=0, l=0)
       ),
+    axis.text.y = element_text(
+      color = axis_text_color,
+      family = axis_text_family,
+      margin = margin(t=0, r=7.5, b=0, l=0)
+      
+    ),
     legend.text = element_text(
       color = legend_text_color,
       family = legend_text_family

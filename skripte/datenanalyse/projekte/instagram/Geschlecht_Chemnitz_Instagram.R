@@ -39,6 +39,7 @@ sql <- glue_sql("
   WHERE land = 'Deutschland'
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
+    AND (befristungsdauer IS NULL OR befristungsdauer >= 60)
 ", .con = con_lokal)
 
 
