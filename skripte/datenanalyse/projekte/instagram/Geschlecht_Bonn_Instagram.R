@@ -100,40 +100,43 @@ Plot_geschlecht <- Daten_Staedte_aufb_stadt %>%
   geom_text(
     data = Daten_Staedte_geschlecht_text,
     aes(y = geschlecht_ges, x = x_pos, label = label_1), inherit.aes = F,
-    hjust = 0, family = "domine", color = "gray25") +
+    hjust = 0, family = "domine", color = "gray25", size = 3.5) +
   geom_richtext(
     data = Daten_Staedte_geschlecht_text,
     aes(y = geschlecht_ges, x = anteil + 2, label = label_2), inherit.aes = F,
     hjust = 0, family = "domine", color = "gray75", fill = panel_background_color,
-    label.colour = panel_background_color, 
+    label.colour = panel_background_color, size = 3.5,
     label.padding = unit(c(0.3, 0.3, 0.3, 0.3), "lines")) +
   annotate("text",
            x = 30, y = Inf,
            label = "deutschlandweites Mittel",
            hjust = 0, vjust = 0.2, size = 3,
-           family = "franklin", color = "gray95",
+           family = "franklin", color = "gray90",
            fontface = "italic") +
   annotate("curve",
            x = 69.5, y = nlevels(Daten_Staedte_aufb_stadt$geschlecht_ges)+0.8,
            xend = 75, yend = nlevels(Daten_Staedte_aufb_stadt$geschlecht_ges) + 0.58,
            arrow = arrow(length = unit(0.1, "cm"), type = "closed"),
-           curvature = -0.15, color = "gray95", linewidth = 0.33) +
+           curvature = -0.15, color = "gray90", linewidth = 0.33) +
   coord_cartesian(clip = "off") +
   labs(x = "Anteil in %", y = "gewünschtes Geschlecht",
+       caption = "Abbildung: Fabian Hellmold/Datengeschichten",
        title = "Geschlecht egal? In <b><span style='color:orange'>Bonn</span></b> eher selten.") +
   theme_dunkel(gridline_x = TRUE, gridline_y = FALSE) +
   theme(
-    plot.margin = margin(t=10, l=20, b=20, r=20),
+    plot.margin = margin(t=10, l=20, b=5, r=20),
     plot.title = element_markdown(margin = margin(b=30),
                                   size = 15),
+    plot.caption = element_text(margin = margin(t=15, r=-2.5),
+                                size = 7),
     axis.line.y = element_blank(),
     axis.text.y = element_blank(),
     axis.title.y = element_text(color = axis_title_color, family = axis_title_family,
-                                size = 13, margin = margin(r=10)),
+                                size = 12, margin = margin(r=10)),
     axis.text.x = element_text(color = axis_text_color, family = axis_text_family,
                                margin = margin(t=7.5)),
     axis.title.x = element_text(color = axis_title_color, family = axis_title_family,
-                                margin = margin(t=7.5))
+                                margin = margin(t=7.5), size = 10.5)
   )
 
 

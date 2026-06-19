@@ -91,7 +91,7 @@ Plot_business <- Daten_Staedte_aufb_2 %>%
            na.rm = TRUE) +
   geom_richtext(aes(label = label_1, x = 0.5, y = stadt),
                 inherit.aes = F, hjust = 0, vjust = 0.55, size = 3, 
-                fontface = "bold", family = "domine", color = "gray50",
+                fontface = "bold", family = "domine", color = "gray25",
                 fill = "#FFD700", label.colour = "#FFD700", 
                 label.padding = unit(c(0.3, 0.3, 0.3, 0.3), "lines")) +
   geom_richtext(aes(label = label_2, x = anteil + 0.5),  vjust = 0.55,
@@ -129,12 +129,13 @@ Plot_business <- Daten_Staedte_aufb_2 %>%
                               "Frankfurt a. M." = "Spitzenreiter")) +
   labs(title = 'In welchen Städten <b><span style="color:#FFD700">"Business-WGs"</span></b><br>besonders verbreitet sind',
        x = "Anteil (%)",
+       caption = "Abbildung: Fabian Hellmold/Datengeschichten",
        y = NULL) +
   coord_cartesian(clip = "off") +
   theme_dunkel(gridline_x = TRUE, gridline_y = FALSE) +
   theme(
-    plot.margin = margin(t=10, l=20, b=20, r=20),
-    plot.title = element_markdown(margin = margin(b=30),
+    plot.margin = margin(t=10, l=20, b=5, r=20),
+    plot.title = element_markdown(margin = margin(b=20),
                                   size = 15),
     axis.line = element_blank(),
     axis.text.y = element_text(margin = margin(r=2.5)),
@@ -143,7 +144,7 @@ Plot_business <- Daten_Staedte_aufb_2 %>%
     axis.text.x = element_text(color = axis_text_color, family = axis_text_family,
                                margin = margin(t=7.5)),
     axis.title.x = element_text(color = axis_title_color, family = axis_title_family,
-                                margin = margin(t=7.5))
+                                margin = margin(t=7.5), size = 10.5)
   )
 
 

@@ -1,10 +1,25 @@
 
 
+
+################################################################################
+#####   ################################################################   #####
+###       ####                                                    ####       ###
+##         ##          INSTAGRAM - Geschlecht Frauenanteil         ##         ##
+###       ####                                                    ####       ###
+#####   ################################################################   #####
+################################################################################
+
+
+library(tidyverse)
+library(DBI)
+library(glue)
+
 source("C:/Users/hellm/Desktop/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
 
 datum_von <- as.Date("2025-10-01")
 datum_bis <- as.Date("2026-03-31")
+
 
 con_lokal <- dbConnect(odbc::odbc(),
                        Driver = "ODBC Driver 17 for SQL Server",
@@ -12,6 +27,7 @@ con_lokal <- dbConnect(odbc::odbc(),
                        Database = Sys.getenv("DATABASE_SQL_LOKAL"),
                        Trusted_Connection = "Yes",
                        Encrypt = "No")
+
 
 
 ## Daten laden -----------------------------------------------------------------
@@ -93,7 +109,7 @@ Plot_geschlecht_frauen <- Daten_ges %>%
            xend = 11.7, yend = 34.6,
            arrow = arrow(length = unit(0.1, "cm"), type = "closed"),
            curvature = -0.1, color = "gray90", linewidth = 0.33) +
-  labs(title = "Blablabla. Diese Überschrift geht über zwei<br>Zeilen",
+  labs(title = "Wo viele <b><span style='color:darkred'>Frauen</span></b> studieren, werden in WGs<br>öfter <b><span style='color:darkred'>Mitbewohnerinnen</span></b> gesucht",
        caption = "Abbildung: Fabian Hellmold/Datengeschichten",
        x = "gewünschtes Geschlecht: Frau",
        y = "Frauenanteil unter Studierenden") +
@@ -105,8 +121,9 @@ Plot_geschlecht_frauen <- Daten_ges %>%
   ) +
   coord_cartesian(clip = "off") +
   theme_dunkel() +
-  theme(plot.title = element_markdown(margin = margin(b=20)),
-        plot.caption = element_text(margin = margin(t=15, r=-2.5),
+  theme(plot.margin = margin(t=10, l=10, b=5, r=10),
+        plot.title = element_markdown(margin = margin(b=20)),
+        plot.caption = element_text(margin = margin(t=15, r=-5),
                                     size = 7),
         axis.title = element_markdown(size = 10))
 
@@ -127,3 +144,4 @@ file_save_dropbox <- "C:\\Users\\hellm\\Dropbox\\Abbildungen_Instagram\\Plot_ges
 
 ggsave(filename = file_save_dropbox, plot = Plot_geschlecht_frauen, 
        width = 4, height = 5, units = "in", dpi = 300)
+

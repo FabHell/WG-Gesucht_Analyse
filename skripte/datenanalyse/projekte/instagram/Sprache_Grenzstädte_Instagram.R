@@ -91,16 +91,16 @@ Daten_Sprache_ges <- rbind(Daten_aufb_Flensb, Daten_aufb_Saarb) %>%
 
 
 
-Daten_Sprache_ges %>%
+Plot_sprachen_grenze <- Daten_Sprache_ges %>%
   ggplot(aes(x = anteil, y = stadt_filter, fill = sprache_filter)) +
   geom_col(show.legend = F, color = "gray25") +
   geom_text(aes(x = label_pos_x, label = glue("{round(anteil,1)}%"),
                 color = color, hjust = hjust),
-            family = "franklin", fontface = "italic", size = 3) +
+            family = "franklin", fontface = "italic", size = 2.75) +
   facet_wrap(~sprache_filter, ncol = 1, scales = "free_y",
              labeller = labeller(sprache_filter = c(
                "dänisch"     = "WGs mit <span style='color:#C60C30'>dänischsprachigen</span> Mitbewohnern",
-               "französisch" = "WGs mit <span style='color:#002395'>französischsprachigen</span> Mitbewohnern"
+               "französisch" = "WGs mit <span style='color:#1A3DB5'>französischsprachigen</span> Mitbewohnern"
              ))) +
   scale_color_identity() +
   scale_fill_manual(values = c(
@@ -109,28 +109,28 @@ Daten_Sprache_ges %>%
   )) +
   scale_y_discrete(
     breaks = c("flensburg", "rest_flensb", "saarbrücken", "rest_saarb"),
-    labels = c("Flensburg", "Andere\ndeutsche\nStädte", "Saarbrücken", "Andere\ndeutsche\nStädte")
+    labels = c("Flensburg", "andere\nStädte", "Saarbrücken", "andere\nStädte")
   ) +
-  labs(title = "Blablabla. Diese Überschrift geht über zwei<br>Zeilen",
+  labs(title = "Wie <b><span style='color:gray90'>Grenznähe</span></b> die Sprache in<br>Wohngemeinschaften prägt",
        caption = "Abbildung: Fabian Hellmold/Datengeschichten",
        x = "Anteil in %",
        y = NULL) +
   theme_dunkel(gridline_y = F) +
   theme(plot.title = element_markdown(margin = margin(b=20),
                                       size = 15),
-        plot.caption = element_text(margin = margin(t=15, r=-2.5),
-                                    size = 7),
         panel.spacing = unit(0.5, "cm"),
         strip.text = element_markdown(size = 8.25, hjust = 1),
         axis.line.y = element_blank(),
-        axis.text.y = element_text(lineheight = 1.05))
+        axis.text.y = element_text(lineheight = 1.05),
+        axis.text.x = element_text(size = 7.5),
+        axis.title.x = element_text(size = 9))
 
 
 
 ## Abbildung lokal speichern ---------------------------------------------------
 
 file_save_lokal <- "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\abbildungen\\projekte\\instagram\\Plot_sprache_grenzstadt.png"
-ggsave(filename = file_save_lokal, plot = last_plot(), 
+ggsave(filename = file_save_lokal, plot = Plot_sprachen_grenze, 
        width = 4, height = 5, units = "in", dpi = 300)
 
 shell.exec(normalizePath(file_save_lokal))
@@ -138,7 +138,8 @@ shell.exec(normalizePath(file_save_lokal))
 
 ## Abbildung in Dropbox speichern ----------------------------------------------
 
-# file_save_dropbox <- "C:\\Users\\hellm\\Dropbox\\Abbildungen_Instagram\\Plot_geschlecht_frauen_vergleich.png"
-# 
-# ggsave(filename = file_save_dropbox, plot = Plot_geschlecht_frauen, 
-#        width = 4, height = 5, units = "in", dpi = 300)
+file_save_dropbox <- "C:\\Users\\hellm\\Dropbox\\Abbildungen_Instagram\\Plot_sprache_grenzstadt.png"
+
+ggsave(filename = file_save_dropbox, plot = Plot_sprachen_grenze,
+       width = 4, height = 5, units = "in", dpi = 300)
+

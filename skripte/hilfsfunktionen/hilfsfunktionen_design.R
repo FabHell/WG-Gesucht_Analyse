@@ -28,6 +28,12 @@ font_add("playfair",
          bold = "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Schriftarten\\Playfair_Display\\PlayfairDisplay-Bold.ttf"
          )
 
+font_add("lora", 
+         regular = "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Schriftarten\\Lora\\Lora-Regular.ttf",
+         italic = "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Schriftarten\\Lora\\Lora-Italic.ttf",
+         bold = "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Schriftarten\\Lora\\Lora-Bold.ttf"
+         )
+
 font_add("franklin", 
          regular = "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Schriftarten\\Libre_Franklin\\LibreFranklin-Regular.ttf",
          italic = "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\Daten\\Schriftarten\\Libre_Franklin\\LibreFranklin-Italic.ttf",
@@ -51,6 +57,9 @@ panel_background_color <- "#1c202a"
 plot_title_family <- "playfair"
 plot_title_color <- "gray70"
 
+plot_caption_family <- "lora"
+plot_caption_color <- "gray35"
+
 axis_text_family <- "domine"
 axis_text_color <- "gray40"
 
@@ -61,7 +70,7 @@ legend_text_family <- "domine"
 legend_text_color <- "gray40"
 
 axis_line_color = "gray30"
-panel_grid_color <- "gray15"
+panel_grid_color <- "gray16"
 
 
 
@@ -84,6 +93,7 @@ theme_dunkel <- function(gridline_x = TRUE, gridline_y = TRUE) {
   }
   
   theme(
+    plot.margin = margin(t=10, l=20, b=5, r=20),
     
     # Einstellungen Hintergründe ===============================================
     plot.background  = element_rect(
@@ -98,6 +108,10 @@ theme_dunkel <- function(gridline_x = TRUE, gridline_y = TRUE) {
       fill =  panel_background_color, 
       color = panel_background_color
       ),
+    strip.background = element_rect(
+      fill =  panel_background_color, 
+      color = panel_background_color 
+    ),
     
     # Einstellungen Texte ======================================================
     plot.title.position = "plot",
@@ -107,10 +121,23 @@ theme_dunkel <- function(gridline_x = TRUE, gridline_y = TRUE) {
       hjust = 0.5,
       lineheight = 1.25
       ),
+    plot.caption = element_text(
+      color = plot_caption_color,
+      family = plot_caption_family,
+      face = "italic",
+      margin = margin(t=15, r=-10),
+      size = 7
+    ),
     axis.title = element_text(
       color = axis_title_color,
       family = axis_title_family
       ),
+    axis.title.x = element_text(
+      margin = margin(t=8)
+    ),
+    axis.title.y = element_text(
+      margin = margin(r=8)
+    ),
     axis.text.x = element_text(
       color = axis_text_color,
       family = axis_text_family,
@@ -120,12 +147,17 @@ theme_dunkel <- function(gridline_x = TRUE, gridline_y = TRUE) {
       color = axis_text_color,
       family = axis_text_family,
       margin = margin(t=0, r=7.5, b=0, l=0)
-      
     ),
     legend.text = element_text(
       color = legend_text_color,
       family = legend_text_family
       ),
+    strip.text = element_markdown(
+      color = "gray60",
+      family = "franklin",
+      face = "bold",
+      margin = margin(b=7.5)
+    ),
     
     # Einstellungen Linien =====================================================
     axis.line = element_line(

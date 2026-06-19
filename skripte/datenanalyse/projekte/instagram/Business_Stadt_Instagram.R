@@ -106,7 +106,7 @@ Plot_business_goe <- ggplot(Daten_Staedte_aufb,
   geom_hline(data = Mittelwerte, 
              aes(yintercept = mean_miete), 
              linetype = "22", color = "gray60") +
-  geom_richtext(data = Mittelwerte, aes(label=label, y=y), x = 0.463,
+  geom_richtext(data = Mittelwerte, aes(label=label, y=y), x = 0.474,
                 label.padding = unit(0.1, "lines"), vjust = 0.54,
                 color = "gray70", size = 2.25, inherit.aes = F, family = "domine",
                 fill = panel_background_color, label.colour = panel_background_color) +
@@ -116,11 +116,14 @@ Plot_business_goe <- ggplot(Daten_Staedte_aufb,
     values = c("TRUE" = 0.8, "FALSE" = 0.4)) + 
   scale_y_continuous(labels = scales::label_dollar(prefix = "", suffix = " €")) +
   labs(x = NULL,
-       y = 'Miete (einzelnes Zimmer)', 
+       y = 'Miete (einzelnes WG-Zimmer)', 
+       caption = "Abbildung: Fabian Hellmold/Datengeschichten",
        title = 'In <b><span style="color:gray90">Göttingen</span></b> zahlt man für <b><span style="color:#FFD700">"Business-WGs"</span></b><br>in der Regel überdurchschnittlich') +
   theme_dunkel(gridline_x = F) +
   theme(axis.text.y = element_text(size=8, margin = margin(r=5)),
-        axis.title.y = element_markdown(margin = margin(r=10)),
+        axis.title.y = element_markdown(margin = margin(r=10), size = 10.5),
+        plot.caption = element_text(margin = margin(t=-2.5, r=-10),
+                                    size = 7),
         plot.title = element_markdown(margin = margin(b=20),
                                       size = 14))
 
