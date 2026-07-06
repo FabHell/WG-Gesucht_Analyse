@@ -107,9 +107,9 @@ plot_alter <- data_interp %>%
   scale_y_continuous(limits = c(0,100),
                      labels = ~paste0(.x, "%")) +
   scale_x_continuous(limits = c(18,40)) +
-  labs(x = "Alter bei der Bewerbung (Jahre)", y = "Anteil der WGs mit passender Altersgrenze",
+  labs(x = "Alter der bewerbenden Person (Jahre)", y = "Anteil der WGs mit passender Altersgrenze",
        caption = "Abbildung: Fabian Hellmold/Datengeschichten",
-       title = "Zu jung oder zu alt? <b><span style='color:#2171b5'>Alter</span></b> als<br><b><span style='color:gray90'>Ausschlusskriterium</span></b> auf dem WG-Markt"
+       title = "Nicht in den Zwanzigern? <b><span style='color:#2171b5'>Alter</span></b> als<br><b><span style='color:gray90'>Ausschlusskriterium</span></b> auf dem WG-Markt"
   ) +
   coord_flip() +
   theme_dunkel() +
@@ -117,7 +117,6 @@ plot_alter <- data_interp %>%
         plot.title = element_markdown(margin = margin(b=15)),
         axis.title = element_text(size = 10),
         axis.title.x = element_text(size = 8.5))
-
 
 
 

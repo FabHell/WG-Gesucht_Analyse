@@ -122,7 +122,7 @@ plot_alter_rang <- ggplot() +
   labs(
     y = "Anteil der WGs, die 18-Jährige aufnehmen",
     caption = "Abbildung: Fabian Hellmold/Datengeschichten",
-    title = "Nicht überall willkommen: Wie offen<br>Städte für <b><span style='color:gray90'>Studiumsanfänger</span></b> sind",
+    title = "Nicht überall willkommen: Wie offen<br><b><span style='color:gray90'>Städte</span></b> für <b><span style='color:gray90'>Studiumsanfänger</span></b> sind",
   ) +
   theme_dunkel() +
   theme(axis.text.x  = element_blank(),

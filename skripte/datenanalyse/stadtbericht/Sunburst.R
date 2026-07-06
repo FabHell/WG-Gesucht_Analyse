@@ -10,7 +10,7 @@
 #############    #############################################    ##############
 
 
-stadt <- "Dresden"
+stadt <- "Hamburg"
 
 library(tidyverse)
 library(showtext)
@@ -281,7 +281,7 @@ Sunburst <- ggplot(data_ges, aes(x=as.factor(id), y=value, fill = variable)) +
 Sunburst_Wappen <- ggdraw(Sunburst) +
   draw_image(img, x=0.43, y=0.415, width=0.145, height=0.145)
 
-file_save <- glue("Abbildungen/SUnburst/{stadt}_Sunburst.png")
+file_save <- glue("C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\abbildungen\\stadtbericht\\sunburst\\{stadt}_Sunburst.png")
 ggsave(filename = file_save, plot = Sunburst_Wappen, 
        width = 6, height = 6, units = "in", dpi = 300)
 

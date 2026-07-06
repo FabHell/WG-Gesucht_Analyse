@@ -130,7 +130,8 @@ theme_dunkel <- function(gridline_x = TRUE, gridline_y = TRUE) {
     ),
     axis.title = element_text(
       color = axis_title_color,
-      family = axis_title_family
+      family = axis_title_family,
+      lineheight = 1.1
       ),
     axis.title.x = element_text(
       margin = margin(t=8)

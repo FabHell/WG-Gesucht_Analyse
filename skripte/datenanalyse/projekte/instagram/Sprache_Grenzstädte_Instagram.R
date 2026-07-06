@@ -99,19 +99,19 @@ Plot_sprachen_grenze <- Daten_Sprache_ges %>%
             family = "franklin", fontface = "italic", size = 2.75) +
   facet_wrap(~sprache_filter, ncol = 1, scales = "free_y",
              labeller = labeller(sprache_filter = c(
-               "dänisch"     = "WGs mit <span style='color:#C60C30'>dänischsprachigen</span> Mitbewohnern",
-               "französisch" = "WGs mit <span style='color:#1A3DB5'>französischsprachigen</span> Mitbewohnern"
+               "dänisch"     = "WGs mit <span style='color:#c8102f'>dänischsprachigen</span> Mitbewohnern",
+               "französisch" = "WGs mit <span style='color:#002654'>französischsprachigen</span> Mitbewohnern"
              ))) +
   scale_color_identity() +
   scale_fill_manual(values = c(
-    "dänisch"     = "#C60C30",
-    "französisch" = "#002395"
+    "dänisch"     = "#c8102f",
+    "französisch" = "#002654"
   )) +
   scale_y_discrete(
     breaks = c("flensburg", "rest_flensb", "saarbrücken", "rest_saarb"),
     labels = c("Flensburg", "andere\nStädte", "Saarbrücken", "andere\nStädte")
   ) +
-  labs(title = "Wie <b><span style='color:gray90'>Grenznähe</span></b> die Sprache in<br>Wohngemeinschaften prägt",
+  labs(title = "Wie <b><span style='color:gray90'>Grenznähe</span></b> die <b><span style='color:gray90'>Sprache</span></b> in<br>Wohngemeinschaften prägt",
        caption = "Abbildung: Fabian Hellmold/Datengeschichten",
        x = "Anteil in %",
        y = NULL) +
