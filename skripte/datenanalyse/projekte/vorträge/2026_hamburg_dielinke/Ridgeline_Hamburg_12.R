@@ -4,7 +4,7 @@
 #############    #############################################    ##############
 ############    ###############################################    ############# 
 ###########    ######                                     ######    ############
-##########    #######       RIDGELINEPLOT Hamburg - 7     #######    ###########            
+##########    #######       RIDGELINEPLOT Hamburg - 12    #######    ###########            
 ###########    ######                                     ######    ############
 ############    ###############################################    #############
 #############    #############################################    ##############
@@ -25,8 +25,10 @@ datum_bis <- as.Date("2026-03-31")
 grenzwert_1 <- 380
 grenzwert_2 <- 440
 
+grenzwert_quote <- 0.6
+
 farbe_unter <- "#7BAFC4"
-farbe_mitte <- "gray45"
+farbe_mitte <- "#C4B8A8"
 farbe_ueber <- "#D4736A"
 
 stadt <- "Hamburg"
@@ -71,11 +73,20 @@ WGdaten_trim <- WGdaten_ges %>%
 
 dichte_df <- with(WGdaten_trim, density(gesamtmiete, na.rm = TRUE)) %>%
   {data.frame(x = .$x, y = .$y)} %>%
-  mutate(bereich = case_when(x < grenzwert_1 ~ "unter", 
-                             x > grenzwert_1 & x < grenzwert_2 ~ "mitte",
-                             x > grenzwert_2 ~ "über"),
-         bereich = factor(bereich, levels = c("unter", "mitte", "über")))
+  mutate(grenze =  cumsum(y) / sum(y)) %>%
+  mutate(bereich = ifelse(grenze < grenzwert_quote, "unter","über"), 
+         bereich = factor(bereich, levels = c("unter", "über")))
 
+grenzwert <- dichte_df %>%
+  group_by(bereich) %>%
+  summarise(wert_min = min(x),
+            wert_max = max(x)) %>%
+  pivot_longer(cols = c(wert_min,wert_max), names_to = "wertelabel", 
+               values_to = "werte") %>%
+  filter((bereich == "unter" & wertelabel == "wert_max") | 
+           (bereich == "über" & wertelabel == "wert_min")) %>%
+  summarise(summe = sum(werte)/2) %>%
+  pull(summe)
 
 anteile <- dichte_df %>%
   group_by(bereich) %>%
@@ -83,32 +94,30 @@ anteile <- dichte_df %>%
   mutate(pct_label = paste0(round(flaeche * 100), "%")) %>%
   mutate(color = case_when(
     bereich == "unter" ~ "#1B4F6B",
-    bereich == "mitte" ~ "transparent",
     bereich == "über" ~ "#7A2200"
   )) %>%
   mutate(x_pos = case_when(
-    bereich == "unter" ~ grenzwert_1 -12.5,
-    bereich == "mitte" ~ (grenzwert_1+grenzwert_2)/2,
-    bereich == "über" ~ grenzwert_2 + 12.5
+    bereich == "unter" ~ grenzwert - 12.5,
+    bereich == "über" ~ grenzwert + 12.5
   )) %>%
   mutate(hjust = case_when(
     bereich == "unter" ~ 1,
-    bereich == "mitte" ~ 0.5,
     bereich == "über" ~ 0
   )) 
 
 
 label_df <- tribble(
-  ~x,              ~y,   ~hjust, ~color,      ~label,
-  grenzwert_1-7.5, Inf,  1,      farbe_unter, "Angebote unter\naktueller Pauschale",
-  grenzwert_2+7.5, Inf,  0,      farbe_ueber, "Angebote über\nkünftige Pauschale"
+  ~x,           ~y,   ~hjust, ~color,      ~label,
+  grenzwert-85, Inf,  1,      farbe_unter, "Angebote aus dem\nBasic Living Segment",
+  grenzwert+85, Inf,  0,      farbe_ueber, "Angebote aus dem\nPremiumsegment"
 )
+
 
 # Abbildung erstellen ----------------------------------------------------------
 
 Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
   geom_area(color = "gray75", linewidth = 0.5) +
-  geom_vline(xintercept = c(grenzwert_1, grenzwert_2), linetype = "solid", 
+  geom_vline(xintercept = c(grenzwert), linetype = "solid", 
              color = "gray25", linewidth = 0.5) +
   geom_text(data = anteile,
             aes(x = x_pos, label = pct_label, hjust = hjust, color = color), 
@@ -117,8 +126,14 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
   geom_text(data = label_df,
             aes(x = x, y = y, label = label,
                 hjust = hjust, color = color),
-            vjust = -0.25, family = "franklin", inherit.aes = FALSE, 
+            vjust = -0.25, family = "franklin", inherit.aes = FALSE,
             size = 4.5, fontface = "italic", lineheight = 1) +
+  with_outer_glow(
+    geom_richtext(x = grenzwert, y = Inf, label = glue("<span style='color:gray20;font-size:11pt'>Luxusgrenze</span><br>{round(grenzwert,0)}€"), 
+                  vjust = -0.1, fontface = "bold", size = 5, lineheight = 1.5,
+                  family = "franklin", fill = "#f8f5f2", label.color = "gray40",
+                  color = "gray10", label.padding =  unit(c(8,8,6,8), "pt")),
+    colour = "gray85", sigma = 8, expand = 5) +
   scale_x_continuous(breaks = c(300,400,500,600,700,800,900,1000,1100),
                      labels = ~paste0(.,"€")) +
   scale_fill_manual(values = c("unter" = farbe_unter, "mitte" = farbe_mitte, 
@@ -145,7 +160,7 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
                                    colour = panel_background_color))
 
 
-file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/vorträge/2026_hamburg_dielinke/Ridgeline_Hamburg_7.png"
+file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/vorträge/2026_hamburg_dielinke/Ridgeline_Hamburg_12.png"
 ggsave(filename = file_save, plot = Abb_Dichte, 
        width = 16, height = 9, units = "in", dpi = 300)
 

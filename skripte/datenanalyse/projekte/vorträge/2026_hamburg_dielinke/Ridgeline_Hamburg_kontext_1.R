@@ -53,6 +53,12 @@ sql <- glue_sql("
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND stadt = {stadt}
+    AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 

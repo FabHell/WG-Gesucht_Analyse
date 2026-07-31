@@ -12,10 +12,9 @@
 
 library(tidyverse)
 library(waffle)
+library(ggridges)
 library(patchwork)
 library(glue)
-library(ggtext)
-library(showtext)
 library(DBI)
 
 
@@ -47,6 +46,12 @@ sql <- glue_sql("
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND stadt = {stadt}
+      AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 Daten_Staedte_roh <- dbGetQuery(con_lokal, sql) 

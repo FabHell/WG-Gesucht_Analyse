@@ -25,6 +25,8 @@ datum_bis <- as.Date("2026-03-31")
 grenzwert_1 <- 380
 grenzwert_2 <- 440
 
+grenzwert_quote <- 0.6
+
 farbe_unter <- "#7BAFC4"
 farbe_mitte <- "#C4B8A8"
 farbe_ueber <- "#D4736A"
@@ -50,6 +52,12 @@ sql <- glue_sql("
     AND gesamtmiete IS NOT NULL
     AND stadtteil_geocoding IS NOT NULL
     AND stadt = {stadt}
+    AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 WGdaten_ges <- dbGetQuery(con_lokal, sql) 
@@ -66,7 +74,7 @@ WGdaten_trim <- WGdaten_ges %>%
 dichte_df <- with(WGdaten_trim, density(gesamtmiete, na.rm = TRUE)) %>%
   {data.frame(x = .$x, y = .$y)} %>%
   mutate(grenze =  cumsum(y) / sum(y)) %>%
-  mutate(bereich = ifelse(grenze < 0.66, "unter","über"), 
+  mutate(bereich = ifelse(grenze < grenzwert_quote, "unter","über"), 
          bereich = factor(bereich, levels = c("unter", "über")))
 
 grenzwert <- dichte_df %>%
@@ -100,8 +108,8 @@ anteile <- dichte_df %>%
 
 label_df <- tribble(
   ~x,           ~y,   ~hjust, ~color,      ~label,
-  grenzwert-65, Inf,  1,      farbe_unter, "Angebote unter\naktueller Pauschale",
-  grenzwert+65, Inf,  0,      farbe_ueber, "Angebote im\nLuxussegment"
+  grenzwert-85, Inf,  1,      farbe_unter, "Angebote aus dem\nBasic Living Segment",
+  grenzwert+85, Inf,  0,      farbe_ueber, "Angebote aus dem\nPremiumsegment"
 )
 
 # Abbildung erstellen ----------------------------------------------------------
@@ -114,16 +122,12 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
             aes(x = x_pos, label = pct_label, hjust = hjust, color = color), 
             size = 4.75, inherit.aes = FALSE, fontface = "bold", 
             family = "franklin", y = 0.00014) +
-  geom_text(data = label_df,
-            aes(x = x, y = y, label = label,
-                hjust = hjust, color = color),
-            vjust = -0.25, family = "franklin", inherit.aes = FALSE,
-            size = 4.5, fontface = "italic", lineheight = 1) +
   scale_x_continuous(breaks = c(300,400,500,600,700,800,900,1000,1100),
                      labels = ~paste0(.,"€")) +
   scale_fill_manual(values = c("unter" = farbe_unter, "mitte" = farbe_mitte, 
                                "über" = farbe_ueber)) +
   scale_color_identity() +
+  coord_cartesian(clip = "off") +
   labs(
     title = NULL,
     x = glue("Zimmermiete in {stadt}"),

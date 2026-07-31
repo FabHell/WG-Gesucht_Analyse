@@ -50,6 +50,12 @@ sql <- glue_sql("
     AND gesamtmiete IS NOT NULL
     AND stadtteil_geocoding IS NOT NULL
     AND stadt = {stadt}
+    AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 WGdaten_ges <- dbGetQuery(con_lokal, sql) 
@@ -114,6 +120,7 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
   scale_fill_manual(values = c("unter" = farbe_unter, "mitte" = farbe_mitte, 
                                "über" = farbe_ueber)) +
   scale_color_identity() +
+  coord_cartesian(clip = "off") +
   labs(
     title = NULL,
     x = glue("Zimmermiete in {stadt}"),

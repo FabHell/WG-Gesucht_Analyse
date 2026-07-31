@@ -50,6 +50,12 @@ sql <- glue_sql("
     AND gesamtmiete IS NOT NULL
     AND stadtteil_geocoding IS NOT NULL
     AND stadt = {stadt}
+    AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 

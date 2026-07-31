@@ -63,6 +63,12 @@ sql <- glue_sql("
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND stadt = {stadt}
+      AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 daten_staedte_roh <- dbGetQuery(con_lokal, sql) 
@@ -200,7 +206,7 @@ plot_singleaxis <- ggplot() +
                   segment.color = "gray35", segment.size = 0.3,
                   min.segment.length = 0,, seed = 121,
                   xlim = c(breite_bar + 0.025, NA),
-                  size = 4, color = "gray50",
+                  size = 4.5, color = "gray50",
                   family = "domine") +
   geom_text_repel(data = daten_profile %>% filter(filter_label == F),
                   aes(x = -0.02, y = anteil, 
@@ -226,7 +232,7 @@ plot_singleaxis <- ggplot() +
            label = c("0%", "100%"), 
            vjust = c(1, 0), size = 4.5, 
            family = "domine", color = axis_text_color) +
-  labs(y = "Spannender Achsentitel") +
+  labs(y = "Anteil zugänglicher WG-Angebote") +
   scale_y_continuous(breaks = c(25,50,75)) +
   coord_cartesian(ylim = c(0,100), xlim = c(-0.5, 0.5),
                   clip = "off", expand = F) +

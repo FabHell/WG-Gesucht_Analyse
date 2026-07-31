@@ -16,8 +16,6 @@ library(ggh4x)
 library(geomtextpath)
 library(patchwork)
 library(glue)
-library(ggtext)
-library(showtext)
 library(DBI)
 
 
@@ -49,6 +47,12 @@ sql <- glue_sql("
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND stadt = {stadt}
+    AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 Daten_Staedte_roh <- dbGetQuery(con_lokal, sql) 
@@ -207,18 +211,13 @@ plot_alter_geschlecht <- alter_geschlecht %>%
   stat_difference(aes(ymin = 0, ymax = alter_mann_anteil),
                   alpha = 0.15, fill = "gray80") +
   stat_difference(aes(ymin = alter_mann_anteil, ymax = alter_frau_anteil),
-                  alpha = 0.3, fill = "#F2A65A") +
+                  alpha = 0.15, fill = "gray80") +
   geom_textline(aes(y = alter_frau_anteil, color = "Frau"), linewidth = 1,
-                lineend = "round", label = "Frau", vjust = 1.15, hjust = 0.75,
+                lineend = "round", label = "Frau", vjust = 1.2, hjust = 0.601,
                 gap = FALSE, size = 5.5) +
   geom_textline(aes(y = alter_mann_anteil, color = "Mann"), linewidth = 1,
                 lineend = "round", label = "Mann",  vjust = 0.05, hjust = 0.19,
                 gap = FALSE, size = 5.5) +
-  # geom_text(
-  #   data = data_label,
-  #   aes(x = Alter, y = anteil, label = geschlecht, color = geschlecht,
-  #       hjust = hjust), vjust = -0.75, family = "domine", size = 3.25
-  #   ) +
   scale_y_continuous(limits = c(0,100),
                      labels = ~paste0(.x, "%")) +
   scale_color_manual(values = c(
@@ -237,7 +236,7 @@ plot_alter_geschlecht <- alter_geschlecht %>%
         axis.text.x = element_text(size = 10.25),
         axis.title.y = element_text(size = 12, face = "bold"),
         axis.title.x = element_text(size = 12, face = "bold")) +
-  coord_flip(clip = "off")
+  coord_flip(clip = "off", xlim = c(18,40))
 
 
 ## Abbildungen zusammenfügen ---------------------------------------------------

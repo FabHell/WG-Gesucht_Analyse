@@ -19,10 +19,10 @@ cell_size <- 500
 
 
 library(sf)
-library(ggplot2)
 library(dplyr)
 library(glue)
 library(DBI)
+library(ggrepel)
 library(tidyverse)
 library(ggfx)
 library(ggtext)
@@ -77,6 +77,19 @@ punkte_wohnungen <- st_read(con_lokal, query = query_wgdaten) %>%
   st_transform(crs = 25832) 
 
 
+# Hochschulen Geodaten ---------------------------------------------------------
+
+Hochschulen_Hamburg <- tribble(
+  ~Ort,                        ~lon,       ~lat,
+  "Uni Hamburg Hauptcampus",   9.985700,   53.565400,
+  "HAW Hamburg",               10.022300,  53.557800,
+  "TU Hamburg-Harburg",        9.969000,   53.463000
+#  "HafenCity Universität",     9.993400,   53.540700,
+#  "Bucerius Law School",       9.982100,   53.560300
+) %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_transform(crs = 25832) 
+
 
 # Polygonraster anlegen --------------------------------------------------------
 
@@ -116,18 +129,17 @@ Karte_Hexagon <- ggplot() +
     colour = "gray65", sigma  = 5, expand = 7.5
   ) +
   geom_sf(data = grid_mit_punkten, aes(fill = count_decile), 
-          color = panel_background_color, size = 0.25) +
-  geom_sf(data = grid_mit_punkten, fill = "gray90", 
           color = "gray70", size = 0.25) +
   geom_sf(data = grenzen_stadtteile, linewidth = 0.25,
           fill = "transparent", color = "gray40") +
+  geom_sf(data = Hochschulen_Hamburg,
+          colour = "gray15", fill = "#b26f5d", size = 5,
+          shape = 21) +
   scale_fill_discrete(
-    type = c("0" = panel_background_color, "1" = panel_background_color, 
-             "2" = panel_background_color, "3" = panel_background_color, 
-             "4" = panel_background_color, "5" = panel_background_color,
-             "6" = panel_background_color, "7" = panel_background_color, 
-             "8" = panel_background_color, "9" = panel_background_color, 
-             "10" = panel_background_color),
+    type = c("0" = "gray90", "1" = "#edf4ff", "2" = "#dfeeff",
+             "3" = "#c9e2fe", "4" = "#b0d2fd", "5" = "#9fc1fb",
+             "6" = "#92b1f5", "7" = "#8ea7ec", "8" = "#8fa0d7",
+             "9" = "#8f99c5", "10" = "#8b92ba"),
     labels = c("0" = "*keine WGs*", "1" = "1 *- wenig WGs*", "2" = "2", "3" = "3", "4" = "4",
                "5" = "5", "6" = "6", "7" = "7", "8" = "8",
                "9" = "9", "10" = "10 *- viele WGs*")
@@ -150,18 +162,17 @@ Karte_Hexagon <- ggplot() +
     axis.text        = element_blank(),
     axis.title       = element_blank(),
     plot.subtitle    = element_text(margin = margin(l = 15), face = "italic"),
-    plot.background  = element_rect(fill = panel_background_color, color = "transparent"),
-    panel.background  = element_rect(fill = panel_background_color, color = "transparent"),
+    plot.background  = element_rect(fill = "#1c202a", color = "transparent"),
+    panel.background  = element_rect(fill = "#1c202a", color = "transparent"),
     legend.position  = "right",
-    legend.key=element_rect(colour=panel_background_color),
     legend.key.spacing.y = unit(c(rep(0.25, 9), 4,0), "pt"),
     legend.text      = element_markdown(family = "domine", size = 18,
-                                        margin = margin(l=15), color = panel_background_color),
+                                        margin = margin(l=15), color = "gray40"),
     legend.box.margin = margin(l=30),
     plot.margin = margin(t=25, b=25)
   )
 
-file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/vorträge/2026_hamburg_dielinke/Karte_WGs_Hamburg_2.png"
+file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/vorträge/2026_hamburg_dielinke/Karte_WGs_Hamburg_4.png"
 ggsave(filename = file_save, plot = Karte_Hexagon, 
        width = 16, height = 9, units = "in", dpi = 300)
 

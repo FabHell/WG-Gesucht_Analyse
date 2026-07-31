@@ -50,6 +50,12 @@ sql <- glue_sql("
     AND gesamtmiete IS NOT NULL
     AND stadtteil_geocoding IS NOT NULL
     AND stadt = {stadt}
+    AND link IN (
+      SELECT link
+      FROM analysedaten
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
 ", .con = con_lokal)
 
 
@@ -105,7 +111,8 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
     x = glue("Zimmermiete in {stadt}"),
     y = "Dichte",
   ) +
-  scale_x_continuous(labels = ~paste0(.,"€")) +
+  scale_x_continuous(breaks = c(300,400,500,600,700,800,900,1000,1100),
+                     labels = ~paste0(.,"€")) +
   theme_dunkel() +
   theme(legend.position = "none", 
         plot.margin = margin(t=100, l=75, b=50, r = 75),
