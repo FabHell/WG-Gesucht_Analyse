@@ -35,7 +35,7 @@ source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hil
 img <- readPNG(glue("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/daten/wappen/{stadt}_wappen.png"))
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -43,7 +43,7 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 sql <- glue_sql("
   SELECT angaben_zum_objekt, wg_art, rauchen, sprache, geschlecht_ges, datum_scraping
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE stadt = {stadt}
     AND (befristungsdauer IS NULL OR befristungsdauer >= 60)
     AND datum_scraping >= {datum_von}

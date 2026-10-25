@@ -12,8 +12,8 @@
 
 stadt <- "Hamburg"
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 cell_size <- 500
 
@@ -33,7 +33,7 @@ source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hil
 # Anfang -----------------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -60,14 +60,14 @@ grenzen_stadt <- grenzen_stadtteile %>%
 
 query_wgdaten <- glue_sql("
   SELECT stadt, datum_scraping, stadtteil_geocoding, geolocation
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE stadt = {stadt}
     AND geolocation IS NOT NULL
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )

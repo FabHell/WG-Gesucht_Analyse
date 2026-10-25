@@ -12,8 +12,8 @@
 
 stadt <- "Hamburg"
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 cell_size <- 200
 
@@ -33,7 +33,7 @@ source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hil
 # Anfang -----------------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -44,14 +44,14 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 query_wgdaten <- glue_sql("
   SELECT stadtteil_geocoding
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE stadt = {stadt}
     AND geolocation IS NOT NULL
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )
@@ -86,7 +86,7 @@ Karte_Hexagon <- ggplot() +
     colour = "gray75", sigma  = 5, expand = 5
   ) +
   geom_sf(data = grenzen_stadtteile, linewidth = 0.5,
-          fill = "gray85", color = "gray40") +
+          fill = "gray95", color = "gray60") +
   scale_fill_gradient(
     low   = panel_background_color, 
     high = panel_background_color,

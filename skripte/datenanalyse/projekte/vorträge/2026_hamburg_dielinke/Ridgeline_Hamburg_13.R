@@ -1,0 +1,189 @@
+
+
+
+#############    #############################################    ##############
+############    ###############################################    ############# 
+###########    ######                                     ######    ############
+##########    #######       RIDGELINEPLOT Hamburg - 13    #######    ###########            
+###########    ######                                     ######    ############
+############    ###############################################    #############
+#############    #############################################    ##############
+
+
+library(DBI)
+library(tidyverse)
+library(ggridges)
+library(glue)
+library(ggfx)
+library(ggtext)
+library(showtext)
+
+source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
+
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
+
+grenzwert_1 <- 380
+grenzwert_2 <- 440
+
+grenzwert_quote <- 0.51
+
+farbe_unter <- "#7BAFC4"
+farbe_mitte <- "#C4B8A8"
+farbe_ueber <- "#D4736A"
+
+stadt <- "Hamburg"
+
+
+## Daten laden -----------------------------------------------------------------
+
+con_lokal <- dbConnect(RPostgres::Postgres(),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
+                       host = Sys.getenv("SERVER_PG"),
+                       port = Sys.getenv("PORT_PG"),
+                       user = Sys.getenv("UID_PG"),
+                       password = Sys.getenv("PWD_PG"))
+
+sql <- glue_sql("
+  SELECT stadt, gesamtmiete, datum_scraping
+  FROM analysedaten_wgs
+  WHERE (befristungsdauer IS NULL OR befristungsdauer >= 60)
+    AND datum_scraping >= {datum_von}
+    AND datum_scraping <= {datum_bis}
+    AND gesamtmiete IS NOT NULL
+    AND stadtteil_geocoding IS NOT NULL
+    AND stadt = {stadt}
+    AND link IN (
+      SELECT link
+      FROM analysedaten_wgs
+      GROUP BY link
+      HAVING COUNT(*) <= 2
+    )
+", .con = con_lokal)
+
+WGdaten_ges <- dbGetQuery(con_lokal, sql) 
+
+
+
+# Daten für Abbildung vorbereiten ----------------------------------------------
+
+WGdaten_trim <- WGdaten_ges %>%
+  filter(gesamtmiete > quantile(gesamtmiete, 0.01, na.rm = TRUE),
+         gesamtmiete < quantile(gesamtmiete, 0.99, na.rm = TRUE))
+
+
+dichte_df <- with(WGdaten_trim, density(gesamtmiete, na.rm = TRUE)) %>%
+  {data.frame(x = .$x, y = .$y)} %>%
+  mutate(grenze =  cumsum(y) / sum(y)) %>%
+  mutate(bereich = ifelse(grenze < grenzwert_quote, "unter","über"), 
+         bereich = factor(bereich, levels = c("unter", "über")))
+
+grenzwert <- dichte_df %>%
+  group_by(bereich) %>%
+  summarise(wert_min = min(x),
+            wert_max = max(x)) %>%
+  pivot_longer(cols = c(wert_min,wert_max), names_to = "wertelabel", 
+               values_to = "werte") %>%
+  filter((bereich == "unter" & wertelabel == "wert_max") | 
+           (bereich == "über" & wertelabel == "wert_min")) %>%
+  summarise(summe = sum(werte)/2) %>%
+  pull(summe)
+
+anteile <- dichte_df %>%
+  group_by(bereich) %>%
+  summarize(flaeche = sum(y) * mean(diff(x)), .groups = "drop") %>%
+  mutate(pct_label = paste0(round(flaeche * 100), "%")) %>%
+  mutate(color = case_when(
+    bereich == "unter" ~ "#1B4F6B",
+    bereich == "über" ~ "#7A2200"
+  )) %>%
+  mutate(x_pos = case_when(
+    bereich == "unter" ~ grenzwert - 12.5,
+    bereich == "über" ~ grenzwert + 12.5
+  )) %>%
+  mutate(hjust = case_when(
+    bereich == "unter" ~ 1,
+    bereich == "über" ~ 0
+  )) 
+
+
+label_df <- tribble(
+  ~x,           ~y,   ~hjust, ~color,      ~label,
+  grenzwert-85, Inf,  1,      panel_background_color, "Mit einem Minijob\n eigenstädig bezahlbar",
+  grenzwert+85, Inf,  0,      panel_background_color, "Mama, kannst du\nkurz telefonieren?"
+)
+
+
+# Abbildung erstellen ----------------------------------------------------------
+
+Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
+  geom_area(color = "gray75", linewidth = 0.5) +
+  geom_text(data = anteile,
+            aes(x = x_pos, label = pct_label, hjust = hjust, color = color), 
+            size = 4.75, inherit.aes = FALSE, fontface = "bold", 
+            family = "franklin", y = 0.00014) +
+  geom_text(data = label_df,
+            aes(x = x, y = y, label = label,
+                hjust = hjust, color = color),
+            vjust = -0.25, family = "franklin", inherit.aes = FALSE,
+            size = 4.5, fontface = "italic", lineheight = 1) +
+  with_outer_glow(
+    geom_richtext(x = grenzwert, y = Inf, label = glue("<span style='color:#21252f;font-size:11pt'>Grenze elterlicher<br>Unabhängigkeit</span><br>{round(grenzwert,0)}€"),
+                  vjust = 0.025, fontface = "bold", size = 5, lineheight = 1,
+                  family = "franklin", fill = "#21252f", label.color = "gray30",
+                  color = "gray65", label.padding =  unit(c(14,8,6,8), "pt")),
+    colour = "#30343e", sigma = 8, expand = 10) +
+  geom_richtext(x = grenzwert, y = Inf, label = glue("<span style='color:gray60;font-size:11pt'>Grenze elterlicher<br>Unabhängigkeit</span>"),
+                vjust = -0.85, fontface = "bold", size = 5, lineheight = 0.9,
+                family = "franklin", fill = "#21252f", label.color = "#21252f",
+                color = "gray65", label.padding =  unit(c(2,2,2,2), "pt")) +
+  geom_vline(xintercept = c(grenzwert, 440), linetype = "solid", 
+             color = c("#21252f", "gray65"), linewidth = 0.5) +
+  annotate(
+    "label",
+    x = grenzwert_2-42.5 , y = 0.002, 
+    label = glue("künftige\nPauschale\n({grenzwert_2}€)"), 
+    hjust = 1, color = "gray75", family = "franklin", size = 4.5,
+    lineheight = 0.95,
+    fill = panel_background_color,
+    linewidth = 0,
+    label.r = unit(0, "pt"),
+    label.padding = unit(c(8,2,8,2), "pt")) +
+  geom_curve(x = grenzwert_2-37.5, 
+             xend = grenzwert_2-6.5,  
+             y = 0.002, yend = 0.0019,
+             arrow = arrow(length = unit(0.1, "cm"), type = "closed"),
+             curvature = -0.15, color = "gray75", linewidth = 0.5,
+             inherit.aes = F) +
+  scale_x_continuous(breaks = c(300,400,500,600,700,800,900,1000,1100),
+                     labels = ~paste0(.,"€")) +
+  scale_fill_manual(values = c("unter" = farbe_unter, "mitte" = farbe_mitte, 
+                               "über" = farbe_ueber)) +
+  scale_color_identity() +
+  coord_cartesian(clip = "off") +
+  labs(
+    title = NULL,
+    x = glue("Zimmermiete in {stadt}"),
+    y = "Dichte",
+  ) +
+  theme_dunkel() +
+  theme(legend.position = "none", 
+        plot.margin = margin(t=100, l=75, b=50, r = 75),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.line.y = element_line(color = panel_background_color),
+        
+        axis.title.x = element_text(margin = margin(t=10), size=14,  face = "bold"),
+        axis.title.y = element_text(margin = margin(r=15), size=14, face = "bold",
+                                    color = panel_background_color),
+        axis.text.x = element_text(size = 11),
+        axis.text.y = element_text(face = "bold", size = 11, vjust = -1.5,
+                                   colour = panel_background_color))
+
+
+file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/vorträge/2026_hamburg_dielinke/Ridgeline_Hamburg_13.png"
+ggsave(filename = file_save, plot = Abb_Dichte, 
+       width = 16, height = 9, units = "in", dpi = 300)
+
+system(paste("xdg-open", shQuote(file_save)))
+

@@ -23,8 +23,8 @@ source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hil
 
 stadt_filter <- "Hamburg"
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 filter_alter <- 25
 
@@ -33,7 +33,7 @@ filter_alter <- 25
 ## Daten laden -----------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -41,15 +41,16 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 sql <- glue_sql("
   SELECT alter_ges, geschlecht_ges, gesamtmiete
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE stadtteil_geocoding IS NOT NULL
+    AND (befristungsdauer IS NULL OR befristungsdauer >= 60)
     AND gesamtmiete IS NOT NULL
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND stadt = {stadt}
       AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )
@@ -100,7 +101,7 @@ Plot_alter <- data_interp %>%
   ggplot(aes(x = Alter, y = 1, height = Anteil, fill = after_stat(height))) +
   geom_density_ridges_gradient(stat = "identity", scale = 1, color = "gray35") +
   geom_hline(yintercept = Anteil_ges_egal, linetype = "dotted", 
-             color = "gray15") +
+             color = "gray15", linewidth = 0.6) +
   annotate("text",
            x=38.25, y=Anteil_ges_egal-10, label="Alter egal",
            family = "franklin", color = "gray25", fontface = "italic",

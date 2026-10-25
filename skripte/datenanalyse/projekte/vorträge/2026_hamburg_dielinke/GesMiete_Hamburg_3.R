@@ -23,8 +23,8 @@ source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hil
 
 stadt <- "Hamburg"
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 filter_alter <- 19
 
@@ -34,8 +34,8 @@ filter_profile <- tribble(
   ~profil,               ~geschlecht_filter,           ~filter_alter, ~filter_miete, ~filter_label,
   "M, 19J, Preis egal",  c("Geschlecht egal", "Mann"), 19,            Inf,           F,
   "F, 19J, Preis egal",  c("Geschlecht egal", "Frau"), 19,            Inf,           F,
-  "M, 19J, 600€",        c("Geschlecht egal", "Mann"), 19,            600,           F,
-  "F, 19J, 600€",        c("Geschlecht egal", "Frau"), 19,            600,           F,
+  "M, 19J, 603€",        c("Geschlecht egal", "Mann"), 19,            603,           F,
+  "F, 19J, 603€",        c("Geschlecht egal", "Frau"), 19,            603,           F,
   "M, 19J, 500€",        c("Geschlecht egal", "Mann"), 19,            500,           T,
   "F, 19J, 500€",        c("Geschlecht egal", "Frau"), 19,            500,           T
 )
@@ -45,7 +45,7 @@ filter_profile <- tribble(
 ## Daten laden -----------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -53,15 +53,16 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 sql <- glue_sql("
   SELECT alter_ges, geschlecht_ges, gesamtmiete
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE stadtteil_geocoding IS NOT NULL
+    AND (befristungsdauer IS NULL OR befristungsdauer >= 60)
     AND gesamtmiete IS NOT NULL
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND stadt = {stadt}
-      AND link IN (
+    AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )
@@ -208,10 +209,10 @@ plot_singleaxis <- ggplot() +
                   aes(x = -0.02, y = anteil, 
                       label = glue("{profil} / {round(anteil,0)}%")),
                   hjust = 1, direction = "y",
-                  segment.color = "gray25", segment.size = 0.3,
+                  segment.color = "gray35", segment.size = 0.3,
                   min.segment.length = 0, seed = 121,
                   xlim = c(NA, -breite_bar - 0.01),
-                  size = 4, color = "gray25",
+                  size = 4, color = "gray35",
                   family = "domine") +
   with_outer_glow(
     geom_rect(data = daten_profile %>% filter(filter_label == T),
@@ -222,7 +223,7 @@ plot_singleaxis <- ggplot() +
   geom_rect(data = daten_profile %>% filter(filter_label == F),
             aes(xmin = -0.03, xmax = 0.03,
                 ymin = anteil - 0.5, ymax = anteil + 0.5),
-            fill = "gray25", color = "gray10") +
+            fill = "gray35", color = "gray10") +
   annotate(geom = "text",
            x = 0, y = c(-1.2, 101.2), 
            label = c("0%", "100%"), 

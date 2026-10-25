@@ -19,13 +19,13 @@ library(showtext)
 
 source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 grenzwert_1 <- 380
 grenzwert_2 <- 440
 
-grenzwert_quote <- 0.6
+grenzwert_quote <- 0.51
 
 farbe_unter <- "#7BAFC4"
 farbe_mitte <- "#C4B8A8"
@@ -37,7 +37,7 @@ stadt <- "Hamburg"
 ## Daten laden -----------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -45,7 +45,7 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 sql <- glue_sql("
   SELECT stadt, gesamtmiete, datum_scraping
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE (befristungsdauer IS NULL OR befristungsdauer >= 60)
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
@@ -54,7 +54,7 @@ sql <- glue_sql("
     AND stadt = {stadt}
     AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )

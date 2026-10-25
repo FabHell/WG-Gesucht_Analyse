@@ -14,18 +14,19 @@ library(DBI)
 library(tidyverse)
 library(ggridges)
 library(glue)
+library(ggfx)
 library(ggtext)
 library(showtext)
 
 source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 grenzwert_1 <- 380
 grenzwert_2 <- 440
 
-grenzwert_quote <- 0.6
+grenzwert_quote <- 0.51
 
 farbe_unter <- "#7BAFC4"
 farbe_mitte <- "#C4B8A8"
@@ -37,7 +38,7 @@ stadt <- "Hamburg"
 ## Daten laden -----------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -45,7 +46,7 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 sql <- glue_sql("
   SELECT stadt, gesamtmiete, datum_scraping
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE (befristungsdauer IS NULL OR befristungsdauer >= 60)
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
@@ -54,7 +55,7 @@ sql <- glue_sql("
     AND stadt = {stadt}
     AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )
@@ -108,8 +109,8 @@ anteile <- dichte_df %>%
 
 label_df <- tribble(
   ~x,           ~y,   ~hjust, ~color,      ~label,
-  grenzwert-85, Inf,  1,      farbe_unter, "Angebote aus dem\nBasic Living Segment",
-  grenzwert+85, Inf,  0,      farbe_ueber, "Angebote aus dem\nPremiumsegment"
+  grenzwert-85, Inf,  1,      farbe_unter, "Mit einem Minijob\n eigenstädig bezahlbar",
+  grenzwert+85, Inf,  0,      farbe_ueber, "Mama, kannst du\nkurz telefonieren?"
 )
 
 
@@ -117,8 +118,6 @@ label_df <- tribble(
 
 Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
   geom_area(color = "gray75", linewidth = 0.5) +
-  geom_vline(xintercept = c(grenzwert), linetype = "solid", 
-             color = "gray25", linewidth = 0.5) +
   geom_text(data = anteile,
             aes(x = x_pos, label = pct_label, hjust = hjust, color = color), 
             size = 4.75, inherit.aes = FALSE, fontface = "bold", 
@@ -129,11 +128,17 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
             vjust = -0.25, family = "franklin", inherit.aes = FALSE,
             size = 4.5, fontface = "italic", lineheight = 1) +
   with_outer_glow(
-    geom_richtext(x = grenzwert, y = Inf, label = glue("<span style='color:gray20;font-size:11pt'>Luxusgrenze</span><br>{round(grenzwert,0)}€"), 
-                  vjust = -0.1, fontface = "bold", size = 5, lineheight = 1.5,
-                  family = "franklin", fill = "#f8f5f2", label.color = "gray40",
-                  color = "gray10", label.padding =  unit(c(8,8,6,8), "pt")),
-    colour = "gray85", sigma = 8, expand = 5) +
+    geom_richtext(x = grenzwert, y = Inf, label = glue("<span style='color:#21252f;font-size:11pt'>Grenze elterlicher<br>Unabhängigkeit</span><br>{round(grenzwert,0)}€"),
+                  vjust = 0.025, fontface = "bold", size = 5, lineheight = 1,
+                  family = "franklin", fill = "#21252f", label.color = "gray30",
+                  color = "gray65", label.padding =  unit(c(14,8,6,8), "pt")),
+    colour = "#30343e", sigma = 8, expand = 10) +
+  geom_richtext(x = grenzwert, y = Inf, label = glue("<span style='color:gray60;font-size:11pt'>Grenze elterlicher<br>Unabhängigkeit</span>"),
+                vjust = -0.85, fontface = "bold", size = 5, lineheight = 0.9,
+                family = "franklin", fill = "#21252f", label.color = "#21252f",
+                color = "gray65", label.padding =  unit(c(2,2,2,2), "pt")) +
+  geom_vline(xintercept = grenzwert, linetype = "solid", 
+             color = "#21252f", linewidth = 0.5) +
   scale_x_continuous(breaks = c(300,400,500,600,700,800,900,1000,1100),
                      labels = ~paste0(.,"€")) +
   scale_fill_manual(values = c("unter" = farbe_unter, "mitte" = farbe_mitte, 

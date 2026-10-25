@@ -23,8 +23,8 @@ source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hil
 
 stadt <- "Hamburg"
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 filter_alter <- 19
 
@@ -41,7 +41,7 @@ filter_profile <- tribble(
 ## Daten laden -----------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -49,15 +49,16 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 sql <- glue_sql("
   SELECT alter_ges, geschlecht_ges, gesamtmiete
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE stadtteil_geocoding IS NOT NULL
+    AND (befristungsdauer IS NULL OR befristungsdauer >= 60)
     AND gesamtmiete IS NOT NULL
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
     AND stadt = {stadt}
-      AND link IN (
+    AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )

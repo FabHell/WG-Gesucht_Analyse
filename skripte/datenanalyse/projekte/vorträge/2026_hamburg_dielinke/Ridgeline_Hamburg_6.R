@@ -19,8 +19,8 @@ library(showtext)
 
 source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
-datum_von <- as.Date("2025-10-01")
-datum_bis <- as.Date("2026-03-31")
+datum_von <- as.Date("2026-04-01")
+datum_bis <- as.Date("2026-09-30")
 
 grenzwert_1 <- 380
 grenzwert_2 <- 440
@@ -36,7 +36,7 @@ stadt <- "Hamburg"
 ## Daten laden -----------------------------------------------------------------
 
 con_lokal <- dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DATABASE_PG"),
+                       dbname = Sys.getenv("DATABASE_PG_WG"),
                        host = Sys.getenv("SERVER_PG"),
                        port = Sys.getenv("PORT_PG"),
                        user = Sys.getenv("UID_PG"),
@@ -44,7 +44,7 @@ con_lokal <- dbConnect(RPostgres::Postgres(),
 
 sql <- glue_sql("
   SELECT stadt, gesamtmiete, datum_scraping
-  FROM analysedaten
+  FROM analysedaten_wgs
   WHERE (befristungsdauer IS NULL OR befristungsdauer >= 60)
     AND datum_scraping >= {datum_von}
     AND datum_scraping <= {datum_bis}
@@ -53,7 +53,7 @@ sql <- glue_sql("
     AND stadt = {stadt}
     AND link IN (
       SELECT link
-      FROM analysedaten
+      FROM analysedaten_wgs
       GROUP BY link
       HAVING COUNT(*) <= 2
     )
@@ -109,11 +109,15 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
   geom_vline(xintercept = grenzwert_2, 
              linetype = "solid", color = "gray85", linewidth = 0.5) +
   annotate(
-    "text",
+    "label",
     x = grenzwert_1-52.5 , y = 0.002, 
     label = glue("aktuelle\nPauschale\n({grenzwert_1}€)"), 
     hjust = 1, color = "gray35", family = "franklin", size = 4.5,
-    lineheight = 0.95) +
+    lineheight = 0.95,
+    fill = panel_background_color,
+    linewidth = 0,
+    label.r = unit(0, "pt"),
+    label.padding = unit(c(8,2,8,2), "pt")) +
   geom_curve(x = grenzwert_1-46, 
              xend = grenzwert_1-6.5,  
              y = 0.002, yend = 0.00185,
@@ -121,11 +125,15 @@ Abb_Dichte <- ggplot(dichte_df, aes(x = x, y = y, fill = bereich)) +
              curvature = -0.15, color = "gray35", linewidth = 0.5,
              inherit.aes = F) +
   annotate(
-    "text",
+    "label",
     x = grenzwert_2+42.5 , y = 0.003, 
     label = glue("künftige\nPauschale\n({grenzwert_2}€)"), 
     hjust = 0, color = "gray75", family = "franklin", size = 4.5,
-    lineheight = 0.95) +
+    lineheight = 0.95,
+    fill = panel_background_color,
+    linewidth = 0,
+    label.r = unit(0, "pt"),
+    label.padding = unit(c(8,2,8,2), "pt")) +
   geom_curve(x = grenzwert_2+37.5, 
              xend = grenzwert_2+6.5,  
              y = 0.003, yend = 0.0029,
