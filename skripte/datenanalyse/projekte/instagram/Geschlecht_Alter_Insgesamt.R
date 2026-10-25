@@ -10,13 +10,13 @@
 ################################################################################
 
 
-source("C:/Users/hellm/Desktop/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
-
-
 library(tidyverse)
 library(glue)
 library(DBI)
+library(ggh4x)
+library(geomtextpath)
 
+source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
 datum_von <- as.Date("2025-10-01")
 datum_bis <- as.Date("2026-03-31")
@@ -26,12 +26,12 @@ datum_bis <- as.Date("2026-03-31")
 ## Daten laden -----------------------------------------------------------------
 
 
-con_lokal <- dbConnect(odbc::odbc(),
-                       Driver = "ODBC Driver 17 for SQL Server",
-                       Server = Sys.getenv("SERVER_SQL_LOKAL"),
-                       Database = Sys.getenv("DATABASE_SQL_LOKAL"),
-                       Trusted_Connection = "Yes",
-                       Encrypt = "No")
+con_lokal <- dbConnect(RPostgres::Postgres(),
+                       dbname = Sys.getenv("DATABASE_PG"),
+                       host = Sys.getenv("SERVER_PG"),
+                       port = Sys.getenv("PORT_PG"),
+                       user = Sys.getenv("UID_PG"),
+                       password = Sys.getenv("PWD_PG"))
 
 sql <- glue_sql("
   SELECT stadt, alter_ges, geschlecht_ges, gesamtmiete
@@ -106,26 +106,33 @@ plot_alter_geschlecht <- alter_geschlecht %>%
   stat_difference(aes(ymin = 0, ymax = alter_mann_anteil),
                   alpha = 0.15, fill = "gray80") +
   stat_difference(aes(ymin = alter_mann_anteil, ymax = alter_frau_anteil),
-                  alpha = 0.3, fill = "#F2A65A") +
-  geom_line(aes(y = alter_frau_anteil, color = "Frau"), linewidth = 1,
-            lineend = "round") +
-  geom_line(aes(y = alter_mann_anteil, color = "Mann"), linewidth = 1,
-            lineend = "round") +
-  geom_text(
-    data = data_label,
-    aes(x = Alter, y = anteil, label = geschlecht, color = geschlecht,
-        hjust = hjust), vjust = -0.75, family = "domine", size = 3.25
-    ) +
+                  alpha = 0.3, fill = "#c8b078") +
+  geom_textline(aes(y = alter_frau_anteil, color = "Frau"), linewidth = 1,
+            lineend = "round", label = "Frau", vjust = 1.2, hjust = 0.602,
+            gap = FALSE, size = 3.25) +
+  geom_textline(aes(y = alter_mann_anteil, color = "Mann"), linewidth = 1,
+            lineend = "round", label = "Mann",  vjust = 0.1, hjust = 0.19,
+            gap = FALSE, size = 3.25) +
+  annotate("text",
+           x = 38.5, y = 67,
+           label = "Geschlechter-\nunterschiede",
+           color = "#c8b078", size = 2.75, hjust = 0, fontface = "italic",
+           lineheight = 0.9, alpha = 0.6) +
+  annotate("curve",
+           x = 38.5, xend = 37, 
+           y = 65, yend = 50.75,
+           curvature = -0.3, arrow = arrow(length = unit(0.15, "cm")),
+           color = "#c8b078", linewidth = 0.5, alpha = 0.6) +
   scale_y_continuous(limits = c(0,100),
                      labels = ~paste0(.x, "%")) +
   scale_color_manual(values = c(
-    "Frau" = "#F2A65A",
-    "Mann" = "#5FA8D3"
+    "Frau" = "#c8b078",
+    "Mann" = "#8fa8c8"
   )) +
   labs(y = "Anteil der WGs mit passendem Alters-\nund Geschlechtsprofil",
-       x = "Alter der bewerbenden Person (Jahre)",
+       x = "Alter der bewerbenden Person",
        caption = "Abbildung: Fabian Hellmold/Datengeschichten",
-       title = "Wie stark das <b><span style='color:gray90'>Geschlecht</span></b> zählt, ist eine Frage des <b><span style='color:gray90'>Alters</span></b>"
+       title = "Altersspezifische <b><span style='color:#c8b078'>Geschlechterunterschiede</span></b>. Wie<br>stark das Geschlecht zählt, ist eine Frage des <b><span style='color:gray90'>Alters</span></b>"
        ) +
   theme_dunkel() +
   theme(
@@ -134,27 +141,32 @@ plot_alter_geschlecht <- alter_geschlecht %>%
     axis.text = element_text(size = 8),
     axis.title.x = element_text(size  = 8.75),
     axis.title.y = element_text(size  = 10),
-    plot.title = element_markdown(margin = margin(b=17.5),
+    plot.title = element_markdown(margin = margin(b=15),
                                   size = 10.5)
   ) +
-  coord_flip(clip = "off")
+  coord_flip(clip = "off", xlim = c(18,40))
 
 
 
 
-## Abbildung lokal speichern ---------------------------------------------------
+## Abbildung speichern ---------------------------------------------------------
 
-file_save_lokal <- "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\abbildungen\\projekte\\instagram\\Differenz_Mann_Frau.png"
-ggsave(filename = file_save_lokal, plot = plot_alter_geschlecht, 
+file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/instagram/Geschlecht_Alter_Insgesamt.png"
+file_dropbox <- "/home/fabian/Dropbox/Abbildungen_Instagram/Abbildungen_Instagram_Fabi/Geschlecht_Alter_Insgesamt.png"
+
+ggsave(filename = file_save, plot = plot_alter_geschlecht, 
        width = 4, height = 5, units = "in", dpi = 300)
 
-shell.exec(normalizePath(file_save_lokal))
+add_logo_insta(
+  image_path = file_save,
+  opacity = 0.4,
+  logo_path = "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/daten/logos/DG_Logo_schwarzweiß.png"
+)
+
+system(paste("xdg-open", shQuote(file_save)))
+
+file_copy(file_save, file_dropbox, overwrite = TRUE)
 
 
-## Abbildung in Dropbox speichern ----------------------------------------------
 
-file_save_dropbox <- "C:\\Users\\hellm\\Dropbox\\Abbildungen_Instagram\\Differenz_Mann_Frau.png"
-
-ggsave(filename = file_save_dropbox, plot = plot_alter_geschlecht,
-       width = 4, height = 5, units = "in", dpi = 300)
 

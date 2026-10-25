@@ -1,7 +1,6 @@
 
 
 
-
 ################################################################################
 #####   ################################################################   #####
 ###       ####                                                    ####       ###
@@ -16,8 +15,7 @@ library(ggrepel)
 library(DBI)
 library(glue)
 
-source("C:/Users/hellm/Desktop/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
-
+source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
 datum_von <- as.Date("2025-10-01")
 datum_bis <- as.Date("2026-03-31")
@@ -28,12 +26,12 @@ datum_bis <- as.Date("2026-03-31")
 ## Daten laden -----------------------------------------------------------------
 
 
-con_lokal <- dbConnect(odbc::odbc(),
-                       Driver = "ODBC Driver 17 for SQL Server",
-                       Server = Sys.getenv("SERVER_SQL_LOKAL"),
-                       Database = Sys.getenv("DATABASE_SQL_LOKAL"),
-                       Trusted_Connection = "Yes",
-                       Encrypt = "No")
+con_lokal <- dbConnect(RPostgres::Postgres(),
+                       dbname = Sys.getenv("DATABASE_PG"),
+                       host = Sys.getenv("SERVER_PG"),
+                       port = Sys.getenv("PORT_PG"),
+                       user = Sys.getenv("UID_PG"),
+                       password = Sys.getenv("PWD_PG"))
 
 sql <- glue_sql("
   SELECT stadt, alter_ges, gesamtmiete
@@ -139,15 +137,19 @@ plot_alter_rang <- ggplot() +
 
 ## Abbildung speichern ---------------------------------------------------------
 
+file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/instagram/Alter_Ranking_Städte.png"
+file_dropbox <- "/home/fabian/Dropbox/Abbildungen_Instagram/Abbildungen_Instagram_Fabi/Alter_Ranking_Städte.png"
 
-file_save_lokal <- "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\abbildungen\\projekte\\instagram\\Plot_alter_rang.png"
-ggsave(filename = file_save_lokal, plot = plot_alter_rang, 
+ggsave(filename = file_save, plot = plot_alter_rang, 
        width = 4, height = 5, units = "in", dpi = 300)
 
-shell.exec(normalizePath(file_save_lokal))
+add_logo_insta(
+  image_path = file_save,
+  opacity = 0.4,
+  logo_path = "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/daten/logos/DG_Logo_schwarzweiß.png"
+)
 
+system(paste("xdg-open", shQuote(file_save)))
 
-file_save_dropbox <- "C:\\Users\\hellm\\Dropbox\\Abbildungen_Instagram\\Plot_alter_rang.png"
+file_copy(file_save, file_dropbox, overwrite = TRUE)
 
-ggsave(filename = file_save_dropbox, plot = plot_alter_rang,
-      width = 4, height = 5, units = "in", dpi = 300)

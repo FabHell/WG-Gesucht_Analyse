@@ -1,4 +1,15 @@
 
+
+
+################################################################################
+#####   ################################################################   #####
+###       ####                                                    ####       ###
+##         ##            INSTAGRAM - Geschlecht 25-Jährige         ##         ##
+###       ####                                                    ####       ###
+#####   ################################################################   #####
+################################################################################
+
+
 library(tidyverse)
 library(waffle)
 library(patchwork)
@@ -6,25 +17,25 @@ library(ggfx)
 library(DBI)
 library(glue)
 
-filter_alter <- 18
+source("/home/fabian/Schreibtisch/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
 datum_von <- as.Date("2025-10-01")
 datum_bis <- as.Date("2026-03-31")
 
+filter_alter <- 25
+
 primärfarbe <- "#3f74a6"
 
-source("C:/Users/hellm/Desktop/WG-Gesucht_Analyse/skripte/hilfsfunktionen/hilfsfunktionen_design.R")
 
 
 ## Daten laden -----------------------------------------------------------------
 
-
-con_lokal <- dbConnect(odbc::odbc(),
-                       Driver = "ODBC Driver 17 for SQL Server",
-                       Server = Sys.getenv("SERVER_SQL_LOKAL"),
-                       Database = Sys.getenv("DATABASE_SQL_LOKAL"),
-                       Trusted_Connection = "Yes",
-                       Encrypt = "No")
+con_lokal <- dbConnect(RPostgres::Postgres(),
+                       dbname = Sys.getenv("DATABASE_PG"),
+                       host = Sys.getenv("SERVER_PG"),
+                       port = Sys.getenv("PORT_PG"),
+                       user = Sys.getenv("UID_PG"),
+                       password = Sys.getenv("PWD_PG"))
 
 sql <- glue_sql("
   SELECT stadt, alter_ges, geschlecht_ges, gesamtmiete
@@ -91,7 +102,7 @@ plot_waffle_w <- daten_waffle_w %>%
   geom_text(x=5.5, y = 21.3, label = glue("{daten_waffle_w[1,3]}%"),
             hjust = 1, family = "domine",
             color = primärfarbe, size = 4.75) +
-  geom_text(x=0.5, y = 21.1, label = glue("Frau / 18 Jahre"),
+  geom_text(x=0.5, y = 21.1, label = glue("Frau / {filter_alter} Jahre"),
             hjust = 0, size = 2.8,
             family = "domine", color = "gray85") +
   scale_fill_manual(
@@ -122,7 +133,7 @@ plot_waffle_m <- daten_waffle_m %>%
   geom_text(x=5.5, y = 21.3, label = glue("{daten_waffle_m[1,3]}%"),
             hjust = 1, family = "domine",
             color = primärfarbe, size = 4.75) +
-  geom_text(x=0.5, y = 21.1, label = glue("Mann / 18 Jahre"),
+  geom_text(x=0.5, y = 21.1, label = glue("Mann / {filter_alter} Jahre"),
             hjust = 0, size = 2.8,
             family = "domine", color = "gray85") +
   scale_fill_manual(
@@ -172,18 +183,20 @@ plot_gesamt <- (plot_waffle_w | plot_waffle_m) +
   ))
 
 
-## Abbildung lokal speichern ---------------------------------------------------
+## Abbildung speichern ---------------------------------------------------------
 
-file_save_lokal <- "C:\\Users\\hellm\\Desktop\\WG-Gesucht_Analyse\\abbildungen\\projekte\\instagram\\Plot_waffle_18.png"
-ggsave(filename = file_save_lokal, plot = plot_gesamt, 
+file_save <- "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/abbildungen/projekte/instagram/Geschlecht_Alter_25.png"
+file_dropbox <- "/home/fabian/Dropbox/Abbildungen_Instagram/Abbildungen_Instagram_Fabi/Geschlecht_Alter_25_.png"
+
+ggsave(filename = file_save, plot = plot_gesamt, 
        width = 4, height = 5, units = "in", dpi = 300)
 
-shell.exec(normalizePath(file_save_lokal))
+add_logo_insta(
+  image_path = file_save,
+  opacity = 0.40,
+  logo_path = "/home/fabian/Schreibtisch/WG-Gesucht_Analyse/daten/logos/DG_Logo_schwarzweiß.png"
+)
 
+system(paste("xdg-open", shQuote(file_save)))
 
-## Abbildung in Dropbox speichern ----------------------------------------------
-
-# file_save_dropbox <- "C:\\Users\\hellm\\Dropbox\\Abbildungen_Instagram\\Plot_waffle_18.png"
-# 
-# ggsave(filename = file_save_dropbox, plot = plot_gesamt,
-#        width = 4, height = 5, units = "in", dpi = 300)
+file_copy(file_save, file_dropbox, overwrite = TRUE)
